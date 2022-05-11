@@ -21,3 +21,8 @@ body {
   padding: 2rem 1rem;
   background-color: #e9ecef;
 }
+
+.weather-icon {
+  aspect-ratio: 1 / 1;
+  width: 120px;
+}
