@@ -26,3 +26,12 @@ body {
   aspect-ratio: 1 / 1;
   width: 120px;
 }
+
+.forecast-card {
+  width: 16rem;
+}
+@media screen and (max-width: 576px) {
+  .forecast-card {
+    width: 100%;
+  }
+}
