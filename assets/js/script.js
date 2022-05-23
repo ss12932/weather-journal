@@ -40,6 +40,18 @@ const fetchData = async (url, options = {}) => {
   }
 };
 
+const getUviClassName = (uvi) => {
+  if (uvi >= 0 && uvi <= 2) {
+    return "bg-success";
+  }
+  if (uvi > 2 && uvi <= 8) {
+    return "bg-warning";
+  }
+  if (uvi > 8) {
+    return "bg-danger";
+  }
+};
+
 const renderCurrentData = (data) => {
   console.log(data);
   const currentWeatherCard = `<div class="p-3">
@@ -192,16 +204,34 @@ ${recentCities}
   }
 };
 
-const renderWeatherInfo = async (cityName) => {
-  //fetch weather data
-  const weatherData = await fetchWeatherData(cityName);
-
+const renderErrorAlert = () => {
   // empty container
   $weatherInfoContainer.empty();
-  //render current data
-  renderCurrentData(weatherData);
-  //render forecast data
-  renderForecastData(weatherData);
+
+  //show alert
+  const alert = `<div class="alert alert-danger" role="alert">
+  Something went wrong!! Please try again.
+</div>`;
+
+  $weatherInfoContainer.append(alert);
+};
+const renderWeatherInfo = async (cityName) => {
+  try {
+    //fetch weather data
+    const weatherData = await fetchWeatherData(cityName);
+
+    // empty container
+    $weatherInfoContainer.empty();
+    //render current data
+    renderCurrentData(weatherData);
+    //render forecast data
+    renderForecastData(weatherData);
+    //if successful city name works in api
+    return true;
+  } catch (err) {
+    renderErrorAlert();
+    return false;
+  }
 };
 const fetchWeatherData = async (cityName) => {
   //fetch data from API
@@ -252,7 +282,7 @@ const fetchWeatherData = async (cityName) => {
     weatherData: forecastData,
   };
 };
-const handleRecentSearchClick = (e) => {
+const handleRecentSearchClick = async (e) => {
   const target = $(e.target);
   //click anywhere will trigger
   // console.log("click");
@@ -262,6 +292,7 @@ const handleRecentSearchClick = (e) => {
     //get city data attribute
     const cityName = target.attr("data-city");
     console.log(cityName);
+    await renderWeatherInfo(cityName);
   }
 };
 const handleFormSubmit = async (e) => {
@@ -274,7 +305,8 @@ const handleFormSubmit = async (e) => {
 
   //validate
   if (cityName) {
-    await renderWeatherInfo(cityName);
+    //added true and false in renderweatherinfo checks in city name actually exists and not cityname = fnajhfuwhfh. returns true or false. below if statement will validate this before rendering and pushing to LS.
+    const renderStatus = await renderWeatherInfo(cityName);
 
     //check cityname works before proceeding
     // console.log(cityName);
@@ -283,16 +315,19 @@ const handleFormSubmit = async (e) => {
     //get recentSearches from local storage
     const recentSearches = readFromLocalStorage("recentSearches", []);
 
-    //push city name to array
-    recentSearches.push(cityName);
+    //stop pushing duplicate searches and rendering in recent searches
+    if (!recentSearches.includes(cityName) && renderStatus) {
+      //push city name to array
+      recentSearches.push(cityName);
 
-    //write recent searches to LS
-    writeToLocalStorage("recentSearches", recentSearches);
+      //write recent searches to LS
+      writeToLocalStorage("recentSearches", recentSearches);
 
-    //remove previous items
-    recentSearchesContainer.children().last().remove();
-    //re render recent cities
-    renderRecentSearches();
+      //remove previous items
+      recentSearchesContainer.children().last().remove();
+      //re render recent cities
+      renderRecentSearches();
+    }
   }
 };
 const onReady = () => {
